@@ -56,9 +56,12 @@ namespace TestWinformProject
             comboBox1_update();
             comboBox2_update();
 
+            if (!File.Exists(TempFilePath))
+            {
+                StreamWriter w = new StreamWriter(TempFilePath, true);
+                w.Close();
+            }
             update_origin_data();
-            //Console.WriteLine(get_Distance(37.9485475, -91.7702905, 37.9485474, -91.7702906, MEAN_SEA_LEVEL_HEIGHT));
-            //while (true) ;
         }
 
         private void comboBox1_update()
@@ -420,6 +423,8 @@ namespace TestWinformProject
             //Console.WriteLine("start!");
             if (num_series == 0)
             {
+                plot.Plot.Clear();
+                plot.Refresh();
                 return;
             }
 
@@ -445,15 +450,15 @@ namespace TestWinformProject
                     {
                         temp_data_series[j] = current_data[j];
                     }
-                    plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
-                    /*
-                    MySignalPlot[series_legend_num - 1] = 
+                    //plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
+                    ///*
+                    MySignalPlot[series_legend_num - 1] = plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
                     var marker = plot.Plot.AddMarker(((float)temp_data_series.Length - 1) / 10, temp_data_series[temp_data_series.Length - 1]);
                     marker.Text = temp_data_series[temp_data_series.Length - 1].ToString("#.##");
                     marker.Color = MySignalPlot[series_legend_num - 1].LineColor;
                     marker.TextFont.Color = marker.Color;
                     marker.TextFont.Alignment = Alignment.UpperCenter;
-                    */
+                    //*/
                 }
                 else
                 {
@@ -463,15 +468,15 @@ namespace TestWinformProject
                     {
                         temp_data_series[j] = current_data[j + series_locations[i - 1]];
                     }
-                    plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
-                    /*
-                    MySignalPlot[series_legend_num - 1] = 
+                    //plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
+                    ///*
+                    MySignalPlot[series_legend_num - 1] = plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
                     var marker = plot.Plot.AddMarker(((float)temp_data_series.Length - 1) / 10, temp_data_series[temp_data_series.Length - 1]);
                     marker.Text = temp_data_series[temp_data_series.Length - 1].ToString("#.##");
                     marker.Color = MySignalPlot[series_legend_num - 1].LineColor;
                     marker.TextFont.Color = marker.Color;
                     marker.TextFont.Alignment = Alignment.UpperCenter;
-                    */
+                    //*/
                 }
                 series_legend_num++;
             }
@@ -688,8 +693,19 @@ namespace TestWinformProject
                     if (y_diff < closest_y)
                     {
                         best_index = i;
+                        closest_y = y_diff;
                     }
                 }
+                double[] y = MySignalPlot[best_index].Ys;
+                double farthest_yardage = y[0];
+                foreach (double point in y)
+                {
+                    if (point > farthest_yardage)
+                    {
+                        farthest_yardage = point;
+                    }
+                }
+                //(farthest_yardage, _) = MySignalPlot[best_index].GetYDataRange(0, MySignalPlot[best_index].Ys.Length);
                 //Console.WriteLine("best y coordinate: " + Y_points[best_index]);
                 //Console.WriteLine("mouse Coordinate: " + mouseCoordY);
 
@@ -702,7 +718,8 @@ namespace TestWinformProject
                 formsPlot3.Render();
 
                 // update the GUI to describe the highlighted point
-                textBox6.Text = $"Point index {points_Index[best_index]} at ({X_points[best_index]:N4}, {Y_points[best_index]:N4})";
+                textBox6.Text = Y_points[best_index].ToString("#.##") + " yards at " + X_points[best_index].ToString("#.##") + " seconds";
+                textBox9.Text = farthest_yardage.ToString("#.##") + " yards";
             }
             catch
             {
