@@ -22,7 +22,8 @@ namespace TestWinformProject
 {
     public partial class Form1 : Form
     {
-
+        private double MHSL = 340;
+        private double most_recent_mhsl = 340;
         private const double MEAN_SEA_LEVEL_HEIGHT = 6371000; //in m
         private const double METERS_TO_YARDS = 1.09361;
         private const int MAX_DATA_SET_SIZE = 2000;
@@ -38,9 +39,7 @@ namespace TestWinformProject
 
         private DirectoryInfo direc = new DirectoryInfo(Path.GetFullPath(System.AppDomain.CurrentDomain.BaseDirectory));
         private string TempFilePath = Path.Combine(Path.GetFullPath(System.AppDomain.CurrentDomain.BaseDirectory), "Streaming.txt");
-        private bool TempFileBeingUsed = false;
         private string CurrFilePath = Path.Combine(Path.GetFullPath(System.AppDomain.CurrentDomain.BaseDirectory), "Streaming.txt");
-        private bool CurrFileBeingUsed = false;
         private string OriginFilePath = Path.Combine(Path.GetFullPath(System.AppDomain.CurrentDomain.BaseDirectory), "Origin.txt");
         private bool OriginFileBeingUsed = false;
 
@@ -57,8 +56,9 @@ namespace TestWinformProject
             comboBox1_update();
             comboBox2_update();
 
-            update_origin_file();
             update_origin_data();
+            //Console.WriteLine(get_Distance(37.9485475, -91.7702905, 37.9485474, -91.7702906, MEAN_SEA_LEVEL_HEIGHT));
+            //while (true) ;
         }
 
         private void comboBox1_update()
@@ -93,8 +93,10 @@ namespace TestWinformProject
             char directive;
             byte[] lat_bytes = new byte[4];
             byte[] lon_bytes = new byte[4];
+            byte[] mhsl_bytes = new byte[4];
             int lat;
             int lon;
+            double height;
             StreamWriter w = new StreamWriter(TempFilePath, true);
 
             while (serialPort1.BytesToRead >= 9)
@@ -118,6 +120,14 @@ namespace TestWinformProject
                     lon = BitConverter.ToInt32(lon_bytes, 0);
                     //Console.WriteLine(lon);
 
+                    for (int i = 0; i < 4; i++)
+                    {
+                        mhsl_bytes[i] = (byte)serialPort1.ReadByte();
+                    }
+                    height = BitConverter.ToInt32(mhsl_bytes, 0) / 1000.0;
+                    most_recent_mhsl = height;
+                    //Console.WriteLine(lon);
+
                     if (directive == 'N')
                     {
                         w.WriteLine();
@@ -126,48 +136,29 @@ namespace TestWinformProject
                     }
                     current_location[0] = (double)lat / 10000000.0;
                     current_location[1] = (double)lon / 10000000.0;
+                    Console.WriteLine("Current location: " + current_location[0] + ", " + current_location[1]);
                     if (directive != 'D')
                     {
                         w.Write('S');
-                        w.Write((double)lat / 10000000.0);
+                        w.Write(current_location[0]);
                         w.Write(',');
-                        w.Write((double)lon / 10000000.0);
+                        w.Write(current_location[1]);
                         w.Write(",");
 
-                        double norm_lat = ((lat - origin_point[0]) * direction_vector[0]) + origin_point[0];
-                        double norm_lon = ((lon - origin_point[1]) * direction_vector[1]) + origin_point[1];
+                        double norm_lat = ((current_location[0] - origin_point[0]) * direction_vector[0]) + origin_point[0];
+                        double norm_lon = ((current_location[1] - origin_point[1]) * direction_vector[1]) + origin_point[1];
 
-                        current_data[num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lat, norm_lon, MEAN_SEA_LEVEL_HEIGHT);
+                        current_data[num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lat, norm_lon, MEAN_SEA_LEVEL_HEIGHT);// + MHSL);
                         num_data_points++;
                     }
-                    textBox5.Text = lat.ToString() +" lat, " + lon.ToString() + " lon";
+                    textBox5.Text = current_location[0].ToString() +" lat, " + current_location[1].ToString() + " lon";
                 }
             }
             w.Close();
 
-            //update_plot(formsPlot1, CurrFilePath);
-            //update_location_plot(formsPlot2, CurrFilePath);
             load_distance_data_points_from_file(CurrFilePath);
             update_distance_plot(formsPlot3);
         }
-
-        //private void formsPlot1_Load(object sender, EventArgs e)
-        //{
-        //    formsPlot1.Plot.XLabel("Lattitude");
-        //    formsPlot1.Plot.YLabel("Longitude");
-        //    formsPlot1.Plot.Title("Geodetic Position");
-        //    update_plot(formsPlot1, CurrFilePath);
-        //    formsPlot1.Refresh();
-        //}
-
-        //private void formsPlot2_Load(object sender, EventArgs e)
-        //{
-        //    formsPlot2.Plot.XLabel("Yards");
-        //    formsPlot2.Plot.YLabel("Yards");
-        //    formsPlot2.Plot.Title("Ball Location");
-        //    update_location_plot(formsPlot2, CurrFilePath);
-        //    formsPlot2.Refresh();
-        //}
 
         private void formsPlot3_Load(object sender, EventArgs e)
         {
@@ -549,7 +540,7 @@ namespace TestWinformProject
 
                 for (int i = 0; i < data_in_line; i++)
                 {
-                    current_data[i + num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lats[i], norm_lons[i], MEAN_SEA_LEVEL_HEIGHT);
+                    current_data[i + num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lats[i], norm_lons[i], MEAN_SEA_LEVEL_HEIGHT);// + MHSL);
                 }
 
                 num_data_points += data_in_line;
@@ -576,6 +567,7 @@ namespace TestWinformProject
         {
             origin_point[0] = current_location[0];
             origin_point[1] = current_location[1];
+            MHSL = most_recent_mhsl;
             update_origin_file();
         }
 
@@ -594,8 +586,6 @@ namespace TestWinformProject
         {
             try
             {
-                //while (OriginFileBeingUsed) ;
-                //OriginFileBeingUsed = true;
                 if (File.Exists(OriginFilePath))
                 {
                     File.Delete(OriginFilePath);
@@ -605,16 +595,18 @@ namespace TestWinformProject
                 w.Write(origin_point[0]);
                 w.Write(",");
                 w.Write(origin_point[1]);
-                w.WriteLine();
+                w.Write(",");
                 w.Write(direction_vector[0]);
                 w.Write(",");
                 w.Write(direction_vector[1]);
-                OriginFileBeingUsed = false;
+                w.Write(",");
+                w.Write(MHSL);
+                w.Close();
+                Console.WriteLine("Set origin at: " + origin_point[0] + ", " + origin_point[1] + ", " + direction_vector[0] + ", " + direction_vector[1] + ", " + MHSL);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Origin file failed to update.");
-                //Console.WriteLine(e.ToString());
             }
         }
 
@@ -622,18 +614,13 @@ namespace TestWinformProject
         {
             try
             {
-                while (OriginFileBeingUsed) ;
-                OriginFileBeingUsed = true;
                 if (!File.Exists(OriginFilePath))
                 {
                     return;
                 }
                 string[] data_lines = File.ReadAllLines(OriginFilePath);
-                OriginFileBeingUsed = false;
                 string temp = "";
-                int count = 0;
-                //Console.WriteLine(data_lines[0]);
-                //Console.WriteLine(data_lines[1]);
+                int count = -1;
                 while (data_lines[0][++count] != ',')
                 {
                     temp += data_lines[0][count];
@@ -641,31 +628,38 @@ namespace TestWinformProject
                 origin_point[0] = double.Parse(temp);
 
                 temp = "";
-                while (count - 1 < data_lines[0].Length)
+                while (data_lines[0][++count] != ',')
                 {
-                    temp += data_lines[0][count++];
+                    temp += data_lines[0][count];
                 }
                 origin_point[1] = double.Parse(temp);
 
                 temp = "";
-                count = 0;
-                while (data_lines[1][++count] != ',')
+                while (data_lines[0][++count] != ',')
                 {
-                    temp += data_lines[1][count];
+                    temp += data_lines[0][count];
                 }
                 direction_vector[0] = double.Parse(temp);
 
                 temp = "";
-                while (count - 1 < data_lines[1].Length)
+                while (data_lines[0][++count] != ',')
                 {
-                    temp += data_lines[1][count++];
+                    temp += data_lines[0][count];
                 }
                 direction_vector[1] = double.Parse(temp);
+
+                temp = "";
+                while ((++count) < data_lines[0].Length - 1)
+                {
+                    temp += data_lines[0][count];
+                }
+                MHSL = double.Parse(temp);
+                Console.WriteLine("Set origin at: " + origin_point[0] + ", " + origin_point[1] + ", " + direction_vector[0] + ", " + direction_vector[1] + ", " + MHSL);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Origin data failed to update");
-                //Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
             }
         }
 
