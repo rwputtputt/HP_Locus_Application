@@ -25,10 +25,10 @@ namespace TestWinformProject
 
         private const double MEAN_SEA_LEVEL_HEIGHT = 6371000; //in m
         private const double METERS_TO_YARDS = 1.09361;
-        private const int MAX_DATA_SET_SIZE = 1000;
+        private const int MAX_DATA_SET_SIZE = 2000;
 
-        private double[] origin_point = new double[2] {37.9484478, -91.7702610};
-        private double[] direction_vector = new double[2] {0.89442720371049, -0.447213570078808};
+        private double[] origin_point = new double[2] { 37.9484478, -91.7702610 };
+        private double[] direction_vector = new double[2] { 0.89442720371049, -0.447213570078808 };
         private double[] current_location = new double[2];
 
         private double[] current_data = new double[MAX_DATA_SET_SIZE];
@@ -109,14 +109,14 @@ namespace TestWinformProject
                         lat_bytes[i] = (byte)serialPort1.ReadByte();
                     }
                     lat = BitConverter.ToInt32(lat_bytes, 0);
-                    Console.WriteLine(lat);
+                    //Console.WriteLine(lat);
 
                     for (int i = 0; i < 4; i++)
                     {
                         lon_bytes[i] = (byte)serialPort1.ReadByte();
                     }
                     lon = BitConverter.ToInt32(lon_bytes, 0);
-                    Console.WriteLine(lon);
+                    //Console.WriteLine(lon);
 
                     if (directive == 'N')
                     {
@@ -124,7 +124,6 @@ namespace TestWinformProject
                         series_locations[num_series] = num_data_points;
                         num_series++;
                     }
-                    Properties.Settings.Default.Save();
                     current_location[0] = (double)lat / 10000000.0;
                     current_location[1] = (double)lon / 10000000.0;
                     if (directive != 'D')
@@ -141,32 +140,34 @@ namespace TestWinformProject
                         current_data[num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lat, norm_lon, MEAN_SEA_LEVEL_HEIGHT);
                         num_data_points++;
                     }
+                    textBox5.Text = lat.ToString() +" lat, " + lon.ToString() + " lon";
                 }
             }
             w.Close();
 
             //update_plot(formsPlot1, CurrFilePath);
             //update_location_plot(formsPlot2, CurrFilePath);
+            load_distance_data_points_from_file(CurrFilePath);
             update_distance_plot(formsPlot3);
         }
 
-        private void formsPlot1_Load(object sender, EventArgs e)
-        {
-            formsPlot1.Plot.XLabel("Lattitude");
-            formsPlot1.Plot.YLabel("Longitude");
-            formsPlot1.Plot.Title("Geodetic Position");
-            update_plot(formsPlot1, CurrFilePath);
-            formsPlot1.Refresh();
-        }
+        //private void formsPlot1_Load(object sender, EventArgs e)
+        //{
+        //    formsPlot1.Plot.XLabel("Lattitude");
+        //    formsPlot1.Plot.YLabel("Longitude");
+        //    formsPlot1.Plot.Title("Geodetic Position");
+        //    update_plot(formsPlot1, CurrFilePath);
+        //    formsPlot1.Refresh();
+        //}
 
-        private void formsPlot2_Load(object sender, EventArgs e)
-        {
-            formsPlot2.Plot.XLabel("Yards");
-            formsPlot2.Plot.YLabel("Yards");
-            formsPlot2.Plot.Title("Ball Location");
-            update_location_plot(formsPlot2, CurrFilePath);
-            formsPlot2.Refresh();
-        }
+        //private void formsPlot2_Load(object sender, EventArgs e)
+        //{
+        //    formsPlot2.Plot.XLabel("Yards");
+        //    formsPlot2.Plot.YLabel("Yards");
+        //    formsPlot2.Plot.Title("Ball Location");
+        //    update_location_plot(formsPlot2, CurrFilePath);
+        //    formsPlot2.Refresh();
+        //}
 
         private void formsPlot3_Load(object sender, EventArgs e)
         {
@@ -278,8 +279,8 @@ namespace TestWinformProject
         {
             CurrFilePath = Path.Combine(Path.GetFullPath(System.AppDomain.CurrentDomain.BaseDirectory), comboBox2.Text);
             textBox3.Text = comboBox2.Text;
-            update_plot(formsPlot1, CurrFilePath);
-            update_location_plot(formsPlot2, CurrFilePath);
+            //update_plot(formsPlot1, CurrFilePath);
+            //update_location_plot(formsPlot2, CurrFilePath);
             load_distance_data_points_from_file(CurrFilePath);
             update_distance_plot(formsPlot3);
         }
@@ -405,7 +406,7 @@ namespace TestWinformProject
                 {
                     normalized_lats_x[i] = ((lat_vals[i] - origin_point[0]) * direction_vector[0]) + origin_point[0];
                     normalized_lons_x[i] = ((lon_vals[i] - origin_point[1]) * direction_vector[1]) + origin_point[1];
-                    
+
                     normalized_lats_y[i] = ((lat_vals[i] - origin_point[0]) * direction_vector[1]) + origin_point[0];
                     normalized_lons_y[i] = ((lon_vals[i] - origin_point[1]) * direction_vector[0]) + origin_point[1];
                 }
@@ -425,6 +426,7 @@ namespace TestWinformProject
 
         private void update_distance_plot(FormsPlot plot)
         {
+            //Console.WriteLine("start!");
             if (num_series == 0)
             {
                 return;
@@ -434,13 +436,13 @@ namespace TestWinformProject
             plot.Plot.Clear();
             MySignalPlot = new ScottPlot.Plottable.SignalPlot[num_series];
             int series_legend_num = 1;
-            for (int i=0; i<num_series; i++)
+            for (int i = 0; i < num_series; i++)
             {
-                Console.WriteLine("Series Location: " + series_locations[i]);
+                //Console.WriteLine("Series Location: " + series_locations[i]);
                 if (series_locations[i] > num_data_points)
                 {
-                    Console.WriteLine("Breaking! series location: " + series_locations[i]);
-                    Console.WriteLine("num_data_points: " + num_data_points);
+                    //Console.WriteLine("Breaking! series location: " + series_locations[i]);
+                    //Console.WriteLine("num_data_points: " + num_data_points);
                     break;
                 }
                 int size_of_series;
@@ -452,29 +454,33 @@ namespace TestWinformProject
                     {
                         temp_data_series[j] = current_data[j];
                     }
-
-                    MySignalPlot[series_legend_num-1] = plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
+                    plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
+                    /*
+                    MySignalPlot[series_legend_num - 1] = 
                     var marker = plot.Plot.AddMarker(((float)temp_data_series.Length - 1) / 10, temp_data_series[temp_data_series.Length - 1]);
                     marker.Text = temp_data_series[temp_data_series.Length - 1].ToString("#.##");
-                    marker.Color = MySignalPlot[series_legend_num-1].LineColor;
+                    marker.Color = MySignalPlot[series_legend_num - 1].LineColor;
                     marker.TextFont.Color = marker.Color;
                     marker.TextFont.Alignment = Alignment.UpperCenter;
+                    */
                 }
                 else
                 {
-                    size_of_series = series_locations[i] - series_locations[i-1];
+                    size_of_series = series_locations[i] - series_locations[i - 1];
                     double[] temp_data_series = new double[size_of_series];
-                    for (int j=0; j<temp_data_series.Length; j++)
+                    for (int j = 0; j < temp_data_series.Length; j++)
                     {
-                        temp_data_series[j] = current_data[j + series_locations[i-1]];
+                        temp_data_series[j] = current_data[j + series_locations[i - 1]];
                     }
-
-                    MySignalPlot[series_legend_num-1] = plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
-                    var marker = plot.Plot.AddMarker(((float)temp_data_series.Length-1)/10, temp_data_series[temp_data_series.Length - 1]);
+                    plot.Plot.AddSignal(temp_data_series, 10, label: "Series " + (series_legend_num));
+                    /*
+                    MySignalPlot[series_legend_num - 1] = 
+                    var marker = plot.Plot.AddMarker(((float)temp_data_series.Length - 1) / 10, temp_data_series[temp_data_series.Length - 1]);
                     marker.Text = temp_data_series[temp_data_series.Length - 1].ToString("#.##");
-                    marker.Color = MySignalPlot[series_legend_num-1].LineColor;
+                    marker.Color = MySignalPlot[series_legend_num - 1].LineColor;
                     marker.TextFont.Color = marker.Color;
                     marker.TextFont.Alignment = Alignment.UpperCenter;
+                    */
                 }
                 series_legend_num++;
             }
@@ -485,6 +491,7 @@ namespace TestWinformProject
             HighlightedPoint.IsVisible = false;
 
             plot.Refresh();
+            //Console.WriteLine("should refresh!");
         }
 
         private void load_distance_data_points_from_file(string file)
@@ -542,7 +549,7 @@ namespace TestWinformProject
 
                 for (int i = 0; i < data_in_line; i++)
                 {
-                    current_data[i+num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lats[i], norm_lons[i], MEAN_SEA_LEVEL_HEIGHT);
+                    current_data[i + num_data_points] = get_Distance(origin_point[0], origin_point[1], norm_lats[i], norm_lons[i], MEAN_SEA_LEVEL_HEIGHT);
                 }
 
                 num_data_points += data_in_line;
@@ -580,7 +587,7 @@ namespace TestWinformProject
             direction_vector[0] /= normalize;
             direction_vector[1] /= normalize;
             update_origin_file();
-            
+
         }
 
         private void update_origin_file()
@@ -604,7 +611,7 @@ namespace TestWinformProject
                 w.Write(direction_vector[1]);
                 OriginFileBeingUsed = false;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("Origin file failed to update.");
                 //Console.WriteLine(e.ToString());
@@ -625,8 +632,8 @@ namespace TestWinformProject
                 OriginFileBeingUsed = false;
                 string temp = "";
                 int count = 0;
-                Console.WriteLine(data_lines[0]);
-                Console.WriteLine(data_lines[1]);
+                //Console.WriteLine(data_lines[0]);
+                //Console.WriteLine(data_lines[1]);
                 while (data_lines[0][++count] != ',')
                 {
                     temp += data_lines[0][count];
@@ -671,13 +678,13 @@ namespace TestWinformProject
                 //Console.WriteLine("mouse coord Y: " + mouseCoordY);
                 double[] X_points = new double[num_series], Y_points = new double[num_series];
                 int[] points_Index = new int[num_series];
-                for (int i=0; i<num_series; i++)
+                for (int i = 0; i < num_series; i++)
                 {
                     (X_points[i], Y_points[i], points_Index[i]) = MySignalPlot[i].GetPointNearestX(mouseCoordX);
                 }
                 int best_index = 0;
                 double closest_y = mouseCoordY - Y_points[0];
-                for (int i=0; i<num_series; i++)
+                for (int i = 0; i < num_series; i++)
                 {
                     double y_diff = mouseCoordY - Y_points[i];
                     if (y_diff < 0)
@@ -714,12 +721,6 @@ namespace TestWinformProject
             File.Delete(CurrFilePath);
             StreamWriter w = new StreamWriter(CurrFilePath, true);
             w.Close();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            update_plot(formsPlot1, CurrFilePath);
-            update_location_plot(formsPlot2, CurrFilePath);
             load_distance_data_points_from_file(CurrFilePath);
             update_distance_plot(formsPlot3);
         }

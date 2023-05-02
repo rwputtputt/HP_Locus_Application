@@ -48,15 +48,12 @@
             this.button8 = new System.Windows.Forms.Button();
             this.textBox7 = new System.Windows.Forms.TextBox();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
-            this.formsPlot1 = new ScottPlot.FormsPlot();
-            this.formsPlot2 = new ScottPlot.FormsPlot();
-            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             this.SuspendLayout();
             // 
             // serialPort1
             // 
-            this.serialPort1.BaudRate = 115200;
+            this.serialPort1.BaudRate = 250000;
             this.serialPort1.PortName = "COM5";
             // 
             // button3
@@ -223,40 +220,11 @@
             this.textBox7.Text = "Mouse Point:";
             this.textBox7.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
-            // formsPlot1
-            // 
-            this.formsPlot1.Location = new System.Drawing.Point(12, 318);
-            this.formsPlot1.Name = "formsPlot1";
-            this.formsPlot1.Size = new System.Drawing.Size(400, 300);
-            this.formsPlot1.TabIndex = 24;
-            this.formsPlot1.Load += new System.EventHandler(this.formsPlot1_Load);
-            // 
-            // formsPlot2
-            // 
-            this.formsPlot2.Location = new System.Drawing.Point(418, 318);
-            this.formsPlot2.Name = "formsPlot2";
-            this.formsPlot2.Size = new System.Drawing.Size(400, 300);
-            this.formsPlot2.TabIndex = 25;
-            this.formsPlot2.Load += new System.EventHandler(this.formsPlot2_Load);
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(418, 288);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(102, 23);
-            this.button1.TabIndex = 26;
-            this.button1.Text = "Refresh Plots";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(868, 675);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.formsPlot2);
-            this.Controls.Add(this.formsPlot1);
             this.Controls.Add(this.textBox7);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.textBox6);
@@ -303,9 +271,6 @@
         private System.Windows.Forms.Button button8;
         private System.Windows.Forms.TextBox textBox7;
         private System.Windows.Forms.BindingSource bindingSource1;
-        private ScottPlot.FormsPlot formsPlot1;
-        private ScottPlot.FormsPlot formsPlot2;
-        private System.Windows.Forms.Button button1;
     }
 }
 
